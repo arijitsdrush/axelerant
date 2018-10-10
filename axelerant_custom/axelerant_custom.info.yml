@@ -1,0 +1,5 @@
+name: 'Axelerant custom'
+type: module
+description: 'Interview module for axelerant'
+core: 8.x
+package: 'Custom'

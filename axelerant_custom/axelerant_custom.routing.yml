@@ -1,0 +1,13 @@
+
+axelerant_custom.axelearent_custom_controller_hello:
+  path: '/page_json/{apikey}/{nid}'
+  defaults:
+    _controller: '\Drupal\axelerant_custom\Controller\AxelearentCustomController::index'
+  requirements:
+    _permission: 'access content'
+  options:
+    parameters:
+      apikey:
+        type: apikey
+      nid:
+        type: entity:node

@@ -1,0 +1,72 @@
+<?php
+
+/**
+ * @file
+ * Contains axelerant_custom.module.
+ */
+
+use Drupal\Core\Routing\RouteMatchInterface;
+use Drupal\Core\Form\FormStateInterface;
+
+/**
+ * Implements hook_help().
+ */
+function axelerant_custom_help($route_name, RouteMatchInterface $route_match) {
+
+  switch ($route_name) {
+    // Main module help for the axelerant custom module.
+    case 'help.page.axelerant_custom':
+      $text = file_get_contents(dirname(__FILE__) . "/README.md");
+      if (!\Drupal::moduleHandler()->moduleExists('markdown')) {
+        return '<pre>' . $text . '</pre>';
+      }
+      else {
+        // Use the Markdown filter to render the README.
+        $filter_manager = \Drupal::service('plugin.manager.filter');
+        $settings = \Drupal::configFactory()->get('markdown.settings')->getRawData();
+        $config = ['settings' => $settings];
+        $filter = $filter_manager->createInstance('markdown', $config);
+        return $filter->process($text, 'en');
+      }
+
+    default:
+  }
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function axelerant_custom_form_system_site_information_settings_alter(&$form, FormStateInterface $form_state, $form_id) {
+
+  $config = \Drupal::config('axelerant_custom.settings');
+
+  $form['site_information']['siteapikey'] = [
+    '#type' => 'textfield',
+    '#title' => t('Site API Key'),
+    '#default_value' => $config->get('siteapikey'),
+    '#size' => 64,
+  ];
+
+  $submitvalue = $config->get('siteapikey') == "No API key yet" ? "Save configuration" : "Update Configuration";
+  $form['actions']['submit']['#value'] = $submitvalue;
+  // Adding submit handler for config writing.
+  $form['#submit'][] = 'axelerant_custom_config_form_submit';
+}
+
+/**
+ * Submit handler for from alter.
+ *
+ * @param array $form
+ *   Structure of the form.
+ * @param \Drupal\Core\Form\FormStateInterface $form_state
+ *   State of the form.
+ */
+function axelerant_custom_config_form_submit(array $form, FormStateInterface $form_state) {
+
+  $siteapikey = $form_state->getValue('siteapikey') ? $form_state->getValue('siteapikey') : "No API key yet";
+  // Writing mutable config.
+  \Drupal::configFactory()->getEditable('axelerant_custom.settings')->set('siteapikey', $siteapikey)->save();
+
+  drupal_set_message("Site API Key has been saved " . $siteapikey);
+
+}
